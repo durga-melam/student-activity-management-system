@@ -37,9 +37,7 @@ if os.path.exists(STATIC_DIR):
 
 
 # Database Startup check
-@app.on_event("startup")
-def startup_event():
-    init_db()
+init_db()
 
 
 # -------------------------------------------------------------
@@ -51,6 +49,21 @@ def read_root():
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": "SVECW IT Activity Portal API is running! Visit /docs for Swagger UI."}
+
+@app.get("/styles.css")
+def get_styles():
+    css_path = os.path.join(STATIC_DIR, "styles.css")
+    if os.path.exists(css_path):
+        return FileResponse(css_path, media_type="text/css")
+    return JSONResponse(status_code=404, content={"message": "styles.css not found"})
+
+@app.get("/app.js")
+def get_app_js():
+    js_path = os.path.join(STATIC_DIR, "app.js")
+    if os.path.exists(js_path):
+        return FileResponse(js_path, media_type="application/javascript")
+    return JSONResponse(status_code=404, content={"message": "app.js not found"})
+
 
 
 # -------------------------------------------------------------
@@ -294,4 +307,4 @@ def delete_activity(activity_id: int):
 if __name__ == "__main__":
     import uvicorn
     print("🚀 Starting SVECW IT Activity Portal on http://127.0.0.1:8000 ...")
-    uvicorn.run("app.py:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVECW IT - Student Activity & Certification Portal</title>
+  
+  <!-- Tailwind CSS Framework -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SheetJS for Excel (.xlsx) Download -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-[#faf9f6] text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- ==================== OFFICIAL SVECW COLLEGE HEADER ==================== -->
+  <header class="bg-white border-b border-slate-200 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        
+        <!-- Left: Official Vishnu Logo & Details -->
+        <div class="flex items-center space-x-3.5">
+          <div class="flex-shrink-0 flex flex-col items-center cursor-pointer" onclick="handleLogout()">
+            <svg class="w-13 h-13" width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 8 C62 8, 75 16, 78 28 C74 38, 64 45, 52 45 C44 45, 36 38, 38 28 C40 18, 44 8, 50 8 Z" fill="#EA580C" />
+              <path d="M78 52 C84 62, 82 76, 72 84 C62 88, 50 84, 44 74 C40 66, 44 58, 54 56 C64 54, 74 50, 78 52 Z" fill="#16A34A" />
+              <path d="M22 48 C16 38, 18 24, 28 16 C38 12, 50 16, 56 26 C60 34, 56 42, 46 44 C36 46, 26 50, 22 48 Z" fill="#7E22CE" />
+              <circle cx="50" cy="50" r="10" fill="#7A1228" opacity="0.9" />
+            </svg>
+            <div class="text-[8.5px] font-black tracking-widest text-[#7a1228]">VISHNU</div>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-baseline gap-2">
+              <h1 class="text-base sm:text-lg font-black tracking-tight text-[#7a1228]">
+                SHRI VISHNU ENGINEERING COLLEGE FOR WOMEN
+              </h1>
+              <span class="text-xs sm:text-sm font-extrabold text-[#ea580c]">(Autonomous)</span>
+            </div>
+            
+            <p class="text-[11px] text-slate-700 font-semibold tracking-tight">
+              Vishnupur, BHIMAVARAM, West Godavari Dist. - 534202
+            </p>
+            <div class="flex flex-wrap items-center gap-x-2.5 text-[10px] text-slate-500">
+              <span>Ph: 08816 - 238687</span>
+              <span>•</span>
+              <span class="font-bold text-[#7a1228]">COUNSELLING CODE : VISW</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: ESTD & Department Tag -->
+        <div class="flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-2 md:pt-0 border-slate-100">
+          <span class="text-[11px] font-black text-[#15803d] tracking-wider uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            ESTD 2001
+          </span>
+          <span class="text-[10.5px] font-bold text-[#7a1228] bg-rose-50 px-2 py-0.5 rounded border border-rose-200 mt-1">
+            Department of Information Technology
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SVECW Ribbon -->
+    <div class="svecw-ribbon"></div>
+
+    <!-- User Logged-in Bar (Only visible after Login) -->
+    <div id="loggedInHeaderBar" class="hidden bg-[#f4efe8] border-b border-[#e5dcd0] px-4 sm:px-8 py-2 text-xs flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-600 font-medium">Logged in as:</span>
+        <span class="font-bold text-[#7a1228] bg-white px-2.5 py-0.5 rounded shadow-sm border border-[#e5dcd0] flex items-center gap-1.5" id="userBadge">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Hi...MELAM JAYA DURGA BHAVANI (22B91A1201)
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <!-- Switch Role Dropdown (inside dashboard) -->
+        <div class="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-[#e5dcd0]">
+          <span class="text-slate-500 text-[11px] font-medium">View:</span>
+          <select id="userRoleSelect" onchange="switchRole(this.value)" class="font-bold text-slate-800 text-[11px] outline-none cursor-pointer bg-transparent">
+            <option value="student">👩‍🎓 Student Portal</option>
+            <option value="faculty">👩‍🏫 Faculty / HOD View</option>
+          </select>
+        </div>
+
+        <button onclick="openAddModal()" class="bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold px-3 py-1 rounded shadow transition flex items-center space-x-1">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>+ Add Activity</span>
+        </button>
+
+        <!-- Logout Button -->
+        <button onclick="handleLogout()" class="bg-rose-100 hover:bg-rose-200 text-[#7a1228] border border-rose-300 text-xs font-bold px-3 py-1 rounded transition flex items-center space-x-1" title="Sign out and return to login page">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       VIEW 1: INITIAL LANDING / LOGIN SCREEN (Matching SVECW Portal Theme)
+       ========================================================================= -->
+  <section id="loginView" class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col justify-center animate-in fade-in duration-300">
+    
+    <!-- Portal Title Banner -->
+    <div class="text-center mb-8">
+      <span class="bg-[#fdf2f4] text-[#7a1228] text-xs font-extrabold px-3 py-1 rounded-full border border-rose-200 uppercase tracking-wider">
+        Accreditation & Audit Management Portal
+      </span>
+      <h2 class="text-2xl sm:text-3xl font-black text-[#7a1228] mt-2">
+        Student Activity & Certification Portal
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 font-medium max-w-xl mx-auto mt-1">
+        Department of Information Technology (IT) • Centralized tracking for Hackathons, NPTEL Courses, Internships & Certifications.
+      </p>
+    </div>
+
+    <!-- Dual Login Cards (Student Orange & Faculty Purple) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
+      
+      <!-- CARD 1: STUDENT LOGIN (Orange Theme from SVECW) -->
+      <div class="bg-white rounded-2xl shadow-md border border-orange-200 overflow-hidden card-hover flex flex-col">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-amber-600 text-white p-5 text-center relative">
+          <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm mx-auto flex items-center justify-center mb-2 shadow-inner">
+            <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
+          </div>
+          <h3 class="text-lg font-black tracking-wide">Student Login</h3>
+          <p class="text-[11px] text-orange-100 font-medium">B.Tech Information Technology (IT)</p>
+        </div>
+
+        <!-- Form Body -->
+        <form onsubmit="handleStudentLogin(event)" class="p-6 space-y-3.5 flex-1 flex flex-col justify-between text-xs">
+          <div class="space-y-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Roll Number (User Name)</label>
+              <input type="text" id="loginStudentRoll" name="username" autocomplete="username" required placeholder="e.g. 22B01A1231" class="w-full border border-slate-300 rounded-lg p-2.5 font-bold uppercase text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none" />
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Password</label>
+              <input type="password" id="loginStudentPass" name="password" autocomplete="current-password" required placeholder="Enter Password" class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none" />
+            </div>
+          </div>
+
+          <div class="pt-2 space-y-2">
+            <button type="submit" class="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-black py-2.5 rounded-lg shadow-md transition flex items-center justify-center space-x-1.5 text-sm">
+              <span>Sign In as Student</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Quick Demo Button -->
+            <button type="button" onclick="quickLogin('student')" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 font-bold py-1.5 rounded-lg transition text-[11px]">
+              ⚡ Quick Demo: Student Login
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CARD 2: FACULTY / HOD LOGIN (Purple/Wine Theme from SVECW) -->
+      <div class="bg-white rounded-2xl shadow-md border border-purple-200 overflow-hidden card-hover flex flex-col">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-[#6b21a8] to-[#7a1228] text-white p-5 text-center relative">
+          <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm mx-auto flex items-center justify-center mb-2 shadow-inner">
+            <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+          </div>
+          <h3 class="text-lg font-black tracking-wide">Faculty / HOD Login</h3>
+          <p class="text-[11px] text-purple-200 font-medium">Activity Coordinators & Department Incharges</p>
+        </div>
+
+        <!-- Form Body -->
+        <form onsubmit="handleFacultyLogin(event)" class="p-6 space-y-3.5 flex-1 flex flex-col justify-between text-xs">
+          <div class="space-y-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Employee ID / Faculty ID</label>
+              <input type="text" id="loginFacultyId" name="username" autocomplete="username" required placeholder="e.g. SVECW-IT-FAC01" class="w-full border border-slate-300 rounded-lg p-2.5 font-bold uppercase text-slate-800 focus:ring-2 focus:ring-purple-600 outline-none" />
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Password</label>
+              <input type="password" id="loginFacultyPass" name="password" autocomplete="current-password" required placeholder="Enter Password" class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-purple-600 outline-none" />
+            </div>
+          </div>
+
+          <div class="pt-2 space-y-2">
+            <button type="submit" class="w-full bg-gradient-to-r from-[#6b21a8] to-[#7a1228] hover:from-[#581c87] hover:to-[#5c0d1e] text-white font-black py-2.5 rounded-lg shadow-md transition flex items-center justify-center space-x-1.5 text-sm">
+              <span>Sign In as Faculty / HOD</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Quick Demo Button -->
+            <button type="button" onclick="quickLogin('faculty')" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-bold py-1.5 rounded-lg transition text-[11px]">
+              ⚡ Quick Demo: Login as Faculty Coordinator
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Department Footer Info -->
+    <div class="mt-8 text-center text-xs text-slate-500">
+      <p class="font-semibold text-slate-700">Shri Vishnu Engineering College for Women (Autonomous) • Bhimavaram</p>
+      <p class="text-[11px] mt-0.5 text-slate-400">NAAC 'A+' Accredited • NBA Accredited Department of Information Technology</p>
+    </div>
+
+  </section>
+
+  <!-- =========================================================================
+       VIEW 2: THE FULL DASHBOARD (Hidden until User logs in)
+       ========================================================================= -->
+  <main id="dashboardView" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-300">
+
+    <!-- Active View Banner -->
+    <div id="roleAlert" class="mb-5 bg-white border-l-4 border-[#7a1228] p-3.5 rounded-r-lg shadow-sm flex items-center justify-between border border-slate-200 no-print">
+      <div class="flex items-center space-x-2.5">
+        <i data-lucide="graduation-cap" class="text-[#ea580c] w-5 h-5" id="roleIcon"></i>
+        <p class="text-xs sm:text-sm text-slate-800 font-medium" id="roleAlertText">
+          <strong>Student Activity Portal:</strong> Track your NPTEL courses, Hackathons, and Certifications for Department Accreditation.
+        </p>
+      </div>
+      <span class="text-[11px] bg-[#fdf2f4] text-[#7a1228] border border-[#fbcfe8] px-2.5 py-1 rounded font-bold">
+        Academic Year: 2025-26 (IT)
+      </span>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 no-print">
+      
+      <!-- Total Activities -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 card-hover border-t-2 border-t-[#7a1228]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Activities</p>
+            <h3 class="text-2xl font-black text-[#7a1228] mt-1" id="statTotal">0</h3>
+            <p class="text-[11px] text-[#ea580c] font-bold mt-0.5" id="statFilterNote">Selected Month</p>
+          </div>
+          <div class="w-10 h-10 bg-[#fdf2f4] text-[#7a1228] rounded-lg flex items-center justify-center">
+            <i data-lucide="award" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Distinct Students -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 card-hover border-t-2 border-t-[#6b21a8]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Distinct Students</p>
+            <h3 class="text-2xl font-black text-[#6b21a8] mt-1" id="statStudents">0</h3>
+            <p class="text-[11px] text-purple-700 font-bold mt-0.5">Unique IT Participants</p>
+          </div>
+          <div class="w-10 h-10 bg-purple-50 text-[#6b21a8] rounded-lg flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hackathons -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 card-hover border-t-2 border-t-[#ea580c]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hackathons</p>
+            <h3 class="text-2xl font-black text-[#ea580c] mt-1" id="statHackathons">0</h3>
+            <p class="text-[11px] text-amber-700 font-bold mt-0.5">SIH & Tech Fests</p>
+          </div>
+          <div class="w-10 h-10 bg-amber-50 text-[#ea580c] rounded-lg flex items-center justify-center">
+            <i data-lucide="code" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- NPTEL / Global -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 card-hover border-t-2 border-t-[#15803d]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">NPTEL / Global</p>
+            <h3 class="text-2xl font-black text-[#15803d] mt-1" id="statNptel">0</h3>
+            <p class="text-[11px] text-emerald-700 font-bold mt-0.5">Certifications Done</p>
+          </div>
+          <div class="w-10 h-10 bg-emerald-50 text-[#15803d] rounded-lg flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Export Toolbar -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 no-print">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        
+        <!-- Filter Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+          
+          <!-- Month Selector -->
+          <div>
+            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+              Select Month
+            </label>
+            <select id="monthSelect" onchange="onMonthChange(this.value)" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+              <option value="ALL">📅 All Months</option>
+              <option value="2026-05" selected>⭐ May 2026</option>
+              <option value="2026-04">April 2026</option>
+              <option value="2026-03">March 2026</option>
+              <option value="2026-02">February 2026</option>
+              <option value="2026-01">January 2026</option>
+              <option value="CUSTOM">Custom Date Range...</option>
+            </select>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+              Activity Category
+            </label>
+            <select id="categorySelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none">
+              <option value="ALL">All Categories</option>
+              <option value="Hackathon">Hackathons</option>
+              <option value="NPTEL">NPTEL / Swayam</option>
+              <option value="Certification">Global Certifications</option>
+              <option value="Internship">Internships</option>
+              <option value="Workshop">Workshops / Bootcamps</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+              Verification Status
+            </label>
+            <select id="statusSelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none">
+              <option value="ALL">All Records</option>
+              <option value="Approved">Approved Only</option>
+              <option value="Pending">Pending Verification</option>
+            </select>
+          </div>
+
+          <!-- Search Input -->
+          <div>
+            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+              Search Student / Roll No
+            </label>
+            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="e.g. 22B91A1201..." class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#7a1228] outline-none font-semibold" />
+          </div>
+
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="flex items-center space-x-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200">
+          <button onclick="exportToExcel()" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Excel (.xlsx)">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Export Excel</span>
+          </button>
+
+          <button onclick="exportToPdf()" class="bg-[#7a1228] hover:bg-[#5c0d1e] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Printable PDF">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print / PDF</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Custom Date Row -->
+      <div id="customDateRow" class="hidden mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center gap-3 text-xs">
+        <span class="font-bold text-slate-600">Custom Dates:</span>
+        <label>From: <input type="date" id="customStartDate" class="border rounded p-1" /></label>
+        <label>To: <input type="date" id="customEndDate" class="border rounded p-1" /></label>
+        <button onclick="applyFilters()" class="bg-[#7a1228] text-white px-3 py-1 rounded font-bold">Apply</button>
+      </div>
+    </div>
+
+    <!-- Data Table & Printable Section -->
+    <div id="printable-report" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      
+      <!-- Print Specific Official SVECW Header -->
+      <div class="hidden print:block p-6 text-center border-b border-slate-300 bg-slate-50">
+        <h2 class="text-base font-black uppercase text-[#7a1228]">SHRI VISHNU ENGINEERING COLLEGE FOR WOMEN (AUTONOMOUS)</h2>
+        <p class="text-xs font-bold text-slate-700">DEPARTMENT OF INFORMATION TECHNOLOGY</p>
+        <p class="text-[11px] text-slate-600 mt-1" id="printReportTitle">Student Extracurricular Activities & Certifications Report</p>
+      </div>
+
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-[#fbf9f5] text-[#7a1228] uppercase font-black text-[11px] border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">#</th>
+              <th class="py-3 px-4">Student Details</th>
+              <th class="py-3 px-4">Category</th>
+              <th class="py-3 px-4">Title / Event</th>
+              <th class="py-3 px-4">Organization</th>
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Achievement</th>
+              <th class="py-3 px-4 text-center">Status</th>
+              <th class="py-3 px-4 text-right no-print faculty-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-700">
+            <!-- Injected by app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-12 text-center text-slate-400">
+        <p class="text-sm font-semibold">No activity records found for the selected filter.</p>
+      </div>
+
+      <!-- Signatures for PDF print -->
+      <div class="hidden print:flex justify-between items-center px-12 pt-16 pb-8 text-xs text-slate-800 font-bold">
+        <div>Activity Coordinator</div>
+        <div>Class Incharge</div>
+        <div>Head of the Department (IT)</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== ADD ACTIVITY MODAL ==================== -->
+  <div id="addModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 border-t-4 border-t-[#7a1228]">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-base font-black text-[#7a1228]">Submit IT Student Activity</h3>
+          <p class="text-[11px] text-slate-500">Accreditation Record for NBA / NAAC Criteria</p>
+        </div>
+        <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      </div>
+
+      <form id="activityForm" onsubmit="handleFormSubmit(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Roll Number *</label>
+            <input type="text" id="modalRoll" required placeholder="e.g. 22B91A1201" class="w-full border rounded p-2 uppercase font-semibold focus:ring-2 focus:ring-[#7a1228] outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Student Name *</label>
+            <input type="text" id="modalName" required placeholder="Full Name" class="w-full border rounded p-2 font-semibold focus:ring-2 focus:ring-[#7a1228] outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Category *</label>
+            <select id="modalCategory" class="w-full border rounded p-2 font-semibold">
+              <option value="Hackathon">Hackathon</option>
+              <option value="NPTEL">NPTEL Course</option>
+              <option value="Certification">Global Certification</option>
+              <option value="Internship">Internship</option>
+              <option value="Workshop">Workshop</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Event Date *</label>
+            <input type="date" id="modalDate" required class="w-full border rounded p-2 font-semibold" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Activity / Event Title *</label>
+          <input type="text" id="modalTitle" required placeholder="e.g. Smart India Hackathon / NPTEL Cloud" class="w-full border rounded p-2" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Organization / Platform *</label>
+            <input type="text" id="modalOrg" required placeholder="e.g. AICTE / IIT Madras / AWS" class="w-full border rounded p-2" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Achievement / Score</label>
+            <input type="text" id="modalScore" placeholder="e.g. 1st Prize / Elite+Silver" class="w-full border rounded p-2" />
+          </div>
+        </div>
+
+        <div class="pt-4 border-t flex justify-end space-x-2">
+          <button type="button" onclick="closeAddModal()" class="px-4 py-2 border rounded text-slate-600 font-bold">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-[#7a1228] hover:bg-[#5c0d1e] text-white rounded font-bold shadow">Save Activity</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
