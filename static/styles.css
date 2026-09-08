@@ -1,0 +1,143 @@
+/* ==========================================================================
+   SHRI VISHNU ENGINEERING COLLEGE FOR WOMEN (AUTONOMOUS)
+   Department of Information Technology (IT) - Activity Portal
+   Design System & Animation Styles
+   ========================================================================== */
+
+:root {
+  --svecw-maroon: #7a1228;
+  --svecw-wine: #5c0d1e;
+  --svecw-orange: #ea580c;
+  --svecw-green: #15803d;
+  --svecw-purple: #6b21a8;
+  --svecw-cream: #faf9f6;
+}
+
+body {
+  background-color: #faf9f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Iconic SVECW Tri-Color Ribbon */
+.svecw-ribbon {
+  background: linear-gradient(90deg, #7a1228 0%, #a21caf 50%, #ea580c 100%);
+  height: 4px;
+}
+
+/* Smooth Fade-in Animations for Page Switch */
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card Hover Elevation */
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -5px rgba(122, 18, 40, 0.09);
+}
+
+/* Focus Input Glows */
+#loginStudentRoll:focus, #loginStudentPass:focus {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
+
+#loginFacultyId:focus, #loginFacultyPass:focus {
+  border-color: #7a1228;
+  box-shadow: 0 0 0 3px rgba(122, 18, 40, 0.15);
+}
+
+/* Category Badges Matching Vishnu Logo Colors */
+.badge-hackathon {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.badge-nptel {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #dcfce7;
+}
+
+.badge-cert {
+  background-color: #faf5ff;
+  color: #6b21a8;
+  border: 1px solid #f3e8ff;
+}
+
+.badge-internship {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #e0f2fe;
+}
+
+/* Smooth Scrollbar for Table */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================================================================
+   OFFICIAL SVECW LETTERHEAD PRINT / PDF REPORT STYLING
+   ========================================================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-report, #printable-report * {
+    visibility: visible;
+  }
+  #printable-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  table {
+    width: 100% !important;
+    border: 1px solid #7a1228 !important;
+  }
+  th {
+    background-color: #fdf2f4 !important;
+    color: #7a1228 !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+  }
+  td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+  }
+}
