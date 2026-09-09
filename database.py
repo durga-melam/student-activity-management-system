@@ -51,6 +51,7 @@ def init_db():
             ('24B01A1219', 'CHEEKURTHI NIRUPAMA', 'II IT', 'A', 'Internship', 'Completed a one month internship in UI/UX Design', 'Future Interns', 'Online', '2026-04-20', '2026-05-20', '1 month', 'Completed', None, None, '2025-26', None, 'APPROVED', 'Certificate verified', 'Class Incharge'),
             
             # Hackathons (May & Upcoming/Recent Records)
+            ('22B91A1201', 'MELAM JAYA DURGA BHAVANI', 'IV IT', 'A', 'Hackathon', 'Smart India Hackathon 2026', 'AICTE & MoE', 'Bhimavaram', '2026-05-18', None, '36 Hrs', '1st Place (₹1 Lakh)', 'Dr. S. Ravi Kumar', None, '2025-26', None, 'APPROVED', 'Verified', 'Faculty Coordinator'),
             ('24B01A12E3', 'RATNALA RENUKA DEVI', 'II IT', 'A', 'Hackathon', 'Amaravati Quantum Valley Hackathon-2025-Semi Final', 'SRKR Engineering College(A)', 'Bhimavaram', '2025-09-10', None, '24 Hrs', 'Semi-Finalist', None, None, '2025-26', None, 'APPROVED', 'Verified', 'Faculty Coordinator'),
             ('23B01A12B1', 'MEDIDI CHARANYA', 'III IT', 'B', 'Hackathon', 'OMNITRIX Hackathon 2025-Nationwide Challenge', 'Siddhartha Academy of Higher Education', 'Vijayawada', '2025-10-17', None, '36 Hrs', '1st Prize', None, None, '2025-26', None, 'APPROVED', 'Winner verified', 'Faculty Coordinator'),
             ('23B01A12A0', 'MANCHIKANTI LAKSHMI SRUTHI MANOJNA', 'III IT', 'A', 'Hackathon', '24 Hr National Level HACKOVERFLOW-2K25', 'SRKR Engineering College(A)', 'Bhimavaram', '2026-05-19', None, '24 Hrs', 'Participation', None, None, '2025-26', None, 'APPROVED', 'Verified', 'Faculty Coordinator'),
