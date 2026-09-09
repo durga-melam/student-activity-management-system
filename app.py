@@ -306,5 +306,5 @@ def delete_activity(activity_id: int):
 # -------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Starting SVECW IT Activity Portal on http://127.0.0.1:8000 ...")
+    print("[SVECW IT PORTAL] Starting Server on http://127.0.0.1:8000 ...")
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
