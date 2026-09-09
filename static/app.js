@@ -213,19 +213,30 @@ function renderActivitiesTable() {
             </div>
           ` : ''}
         </td>
-        <td class="py-3 px-4 text-right no-print faculty-col ${currentRole === 'student' ? 'hidden' : ''}">
+        <td class="py-3 px-4 text-right no-print">
           <div class="flex items-center justify-end space-x-1.5">
-            ${!isApproved ? `
-              <button onclick="approveRecord(${act.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold px-2 py-1 rounded text-[11px] transition">Approve</button>
-              ${!isRejected ? `
-                <button onclick="openRejectModal(${act.id})" class="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold px-2 py-1 rounded text-[11px] transition">Reject</button>
-              ` : ''}
+            ${currentRole === 'faculty' ? `
+              ${!isApproved ? `
+                <button onclick="approveRecord(${act.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold px-2 py-1 rounded text-[11px] transition">Approve</button>
+                ${!isRejected ? `
+                  <button onclick="openRejectModal(${act.id})" class="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold px-2 py-1 rounded text-[11px] transition">Reject</button>
+                ` : ''}
+              ` : `
+                <span class="text-emerald-700 text-[11px] font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">✓ Verified</span>
+              `}
+              <button onclick="deleteRecord(${act.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition" title="Delete record">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
             ` : `
-              <span class="text-emerald-700 text-[11px] font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">✓ Verified</span>
+              ${!isApproved ? `
+                <button onclick="deleteRecord(${act.id})" class="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded text-[11px] font-bold transition flex items-center gap-1" title="Delete Mistaken Submission">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <span>Delete</span>
+                </button>
+              ` : `
+                <span class="text-slate-400 text-[11px] font-semibold">✓ Verified</span>
+              `}
             `}
-            <button onclick="deleteRecord(${act.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition" title="Delete record">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
           </div>
         </td>
       `;
