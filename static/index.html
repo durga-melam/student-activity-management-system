@@ -25,15 +25,9 @@
         
         <!-- Left: Official Vishnu Logo & Details -->
         <div class="flex items-center space-x-3.5">
-          <div class="flex-shrink-0 flex flex-col items-center cursor-pointer" onclick="handleLogout()">
-            <svg class="w-13 h-13" width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 8 C62 8, 75 16, 78 28 C74 38, 64 45, 52 45 C44 45, 36 38, 38 28 C40 18, 44 8, 50 8 Z" fill="#EA580C" />
-              <path d="M78 52 C84 62, 82 76, 72 84 C62 88, 50 84, 44 74 C40 66, 44 58, 54 56 C64 54, 74 50, 78 52 Z" fill="#16A34A" />
-              <path d="M22 48 C16 38, 18 24, 28 16 C38 12, 50 16, 56 26 C60 34, 56 42, 46 44 C36 46, 26 50, 22 48 Z" fill="#7E22CE" />
-              <circle cx="50" cy="50" r="10" fill="#7A1228" opacity="0.9" />
-            </svg>
-            <div class="text-[8.5px] font-black tracking-widest text-[#7a1228]">VISHNU</div>
-          </div>
+        <div class="flex-shrink-0 cursor-pointer" onclick="handleLogout()">
+  <img src="svecw_logo.png" alt="SVECW Logo" class="h-12 w-auto object-contain" />
+</div>
 
           <div>
             <div class="flex flex-wrap items-baseline gap-2">
@@ -356,76 +350,123 @@
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-1">
-          
-          <!-- Month Selector -->
-          <div>
-            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
-              <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#ea580c]"></i>
-              Select Month
-            </label>
-            <select id="monthSelect" onchange="onMonthChange(this.value)" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
-              <option value="ALL">📅 All Months</option>
-              <option value="2026-05" selected>⭐ May 2026</option>
-              <option value="2026-04">April 2026</option>
-              <option value="2026-03">March 2026</option>
-              <option value="2026-02">February 2026</option>
-              <option value="2026-01">January 2026</option>
-              <option value="CUSTOM">Custom Date Range...</option>
-            </select>
+        <div class="space-y-3 flex-1">
+          <!-- Row 1: Academic & Date Filters -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            
+            <!-- Month Selector -->
+            <div>
+              <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                Select Month
+              </label>
+              <select id="monthSelect" onchange="onMonthChange(this.value)" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+                <option value="ALL">All Months</option>
+                <option value="2026-05" selected>May 2026</option>
+                <option value="2026-04">April 2026</option>
+                <option value="2026-03">March 2026</option>
+                <option value="2026-02">February 2026</option>
+                <option value="2026-01">January 2026</option>
+                <option value="2025-12">December 2025</option>
+                <option value="2025-11">November 2025</option>
+                <option value="2025-10">October 2025</option>
+                <option value="2025-09">September 2025</option>
+                <option value="2025-06">June 2025</option>
+                <option value="2025-05">May 2025</option>
+                <option value="CUSTOM">Custom Date Range...</option>
+              </select>
+            </div>
+
+            <!-- Class / Year Filter -->
+            <div>
+              <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                Class / Year
+              </label>
+              <select id="classYearSelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+                <option value="ALL">All Years</option>
+                <option value="II IT">II IT (2nd Year)</option>
+                <option value="III IT">III IT (3rd Year)</option>
+                <option value="IV IT">IV IT (4th Year)</option>
+              </select>
+            </div>
+
+            <!-- Section Filter -->
+            <div>
+              <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                <i data-lucide="users" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                Section
+              </label>
+              <select id="sectionSelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+                <option value="ALL">All Sections</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+              </select>
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                Activity Category
+              </label>
+              <select id="categorySelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+                <option value="ALL">All Categories</option>
+                <option value="Hackathon">Hackathons</option>
+                <option value="NPTEL">NPTEL / Swayam</option>
+                <option value="Certification">Global Certifications</option>
+                <option value="Internship">Internships</option>
+                <option value="Journal">Research Papers / Journals</option>
+                <option value="Workshop">Workshops / Bootcamps</option>
+              </select>
+            </div>
+
           </div>
 
-          <!-- Category -->
-          <div>
-            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
-              <i data-lucide="layers" class="w-3.5 h-3.5 text-[#ea580c]"></i>
-              Activity Category
-            </label>
-            <select id="categorySelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none">
-              <option value="ALL">All Categories</option>
-              <option value="Hackathon">Hackathons</option>
-              <option value="NPTEL">NPTEL / Swayam</option>
-              <option value="Certification">Global Certifications</option>
-              <option value="Internship">Internships</option>
-              <option value="Workshop">Workshops / Bootcamps</option>
-            </select>
+          <!-- Row 2: Status, Search & Action Buttons -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2 border-t border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 max-w-xl">
+              
+              <!-- Status -->
+              <div>
+                <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                  <i data-lucide="shield" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                  Verification Status
+                </label>
+                <select id="statusSelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none text-slate-800">
+                  <option value="ALL">All Records</option>
+                  <option value="Approved">Approved Only</option>
+                  <option value="Pending">Pending Verification</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              <!-- Search Input -->
+              <div>
+                <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
+                  <i data-lucide="search" class="w-3.5 h-3.5 text-[#ea580c]"></i>
+                  Search Student / Roll No
+                </label>
+                <input type="text" id="searchInput" oninput="applyFilters()" placeholder="e.g. 22B01A1231..." class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#7a1228] outline-none font-semibold text-slate-800" />
+              </div>
+
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="flex items-center space-x-2 pt-1 md:pt-0 self-end md:self-auto">
+              <button onclick="exportToExcel()" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Excel (.xlsx)">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span>Export Excel</span>
+              </button>
+
+              <button onclick="exportToPdf()" class="bg-[#7a1228] hover:bg-[#5c0d1e] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Printable PDF">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>Print / PDF</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Status -->
-          <div>
-            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
-              <i data-lucide="shield" class="w-3.5 h-3.5 text-[#ea580c]"></i>
-              Verification Status
-            </label>
-            <select id="statusSelect" onchange="applyFilters()" class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 font-bold focus:ring-2 focus:ring-[#7a1228] outline-none">
-              <option value="ALL">All Records</option>
-              <option value="Approved">Approved Only</option>
-              <option value="Pending">Pending Verification</option>
-            </select>
-          </div>
-
-          <!-- Search Input -->
-          <div>
-            <label class="block text-xs font-bold text-[#7a1228] mb-1 flex items-center gap-1">
-              <i data-lucide="search" class="w-3.5 h-3.5 text-[#ea580c]"></i>
-              Search Student / Roll No
-            </label>
-            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="e.g. 22B91A1201..." class="w-full text-xs bg-[#faf9f6] border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#7a1228] outline-none font-semibold" />
-          </div>
-
-        </div>
-
-        <!-- Export Buttons -->
-        <div class="flex items-center space-x-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200">
-          <button onclick="exportToExcel()" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Excel (.xlsx)">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-            <span>Export Excel</span>
-          </button>
-
-          <button onclick="exportToPdf()" class="bg-[#7a1228] hover:bg-[#5c0d1e] text-white text-xs font-bold px-3.5 py-2 rounded shadow-sm transition flex items-center space-x-1.5" title="Download Printable PDF">
-            <i data-lucide="printer" class="w-4 h-4"></i>
-            <span>Print / PDF</span>
-          </button>
         </div>
 
       </div>
@@ -472,8 +513,12 @@
       </div>
 
       <!-- Empty State -->
-      <div id="emptyState" class="hidden py-12 text-center text-slate-400">
-        <p class="text-sm font-semibold">No activity records found for the selected filter.</p>
+      <div id="emptyState" class="hidden py-12 text-center text-slate-400 space-y-2">
+        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+          <i data-lucide="search-x" class="w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-semibold text-slate-600">No activity records found for the selected filter.</p>
+        <p class="text-xs text-slate-400">Try changing Category or selecting <button type="button" onclick="resetToAllMonths()" class="text-[#7a1228] font-bold underline hover:text-[#ea580c]">📅 All Months</button></p>
       </div>
 
       <!-- Signatures for PDF print -->
@@ -501,11 +546,30 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">Roll Number *</label>
-            <input type="text" id="modalRoll" required placeholder="e.g. 22B91A1201" class="w-full border rounded p-2 uppercase font-semibold focus:ring-2 focus:ring-[#7a1228] outline-none" />
+            <input type="text" id="modalRoll" required placeholder="e.g. 22B01A1231" class="w-full border rounded p-2 uppercase font-semibold focus:ring-2 focus:ring-[#7a1228] outline-none" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Student Name *</label>
             <input type="text" id="modalName" required placeholder="Full Name" class="w-full border rounded p-2 font-semibold focus:ring-2 focus:ring-[#7a1228] outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Class / Year *</label>
+            <select id="modalClassYear" class="w-full border rounded p-2 font-semibold text-slate-700">
+              <option value="II IT">II IT (2nd Year)</option>
+              <option value="III IT" selected>III IT (3rd Year)</option>
+              <option value="IV IT">IV IT (4th Year)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Section *</label>
+            <select id="modalSection" class="w-full border rounded p-2 font-semibold text-slate-700">
+              <option value="A" selected>Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+            </select>
           </div>
         </div>
 

@@ -29,6 +29,10 @@ const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" 
 // ==================== 1. FETCH ACTIVITIES ====================
 async function fetchActivitiesFromBackend() {
   const monthVal = document.getElementById("monthSelect")?.value || "ALL";
+  const startDate = document.getElementById("customStartDate")?.value || "";
+  const endDate = document.getElementById("customEndDate")?.value || "";
+  const classYearVal = document.getElementById("classYearSelect")?.value || "ALL";
+  const sectionVal = document.getElementById("sectionSelect")?.value || "ALL";
   const catVal = document.getElementById("categorySelect")?.value || "ALL";
   const statusVal = document.getElementById("statusSelect")?.value || "ALL";
   const searchVal = document.getElementById("searchInput")?.value?.trim() || "";
@@ -37,6 +41,12 @@ async function fetchActivitiesFromBackend() {
   const params = new URLSearchParams();
 
   if (monthVal !== "ALL" && monthVal !== "CUSTOM") params.append("month", monthVal);
+  if (monthVal === "CUSTOM") {
+    if (startDate) params.append("from_date", startDate);
+    if (endDate) params.append("to_date", endDate);
+  }
+  if (classYearVal !== "ALL") params.append("class_year", classYearVal);
+  if (sectionVal !== "ALL") params.append("section", sectionVal);
   if (catVal !== "ALL") params.append("category", catVal);
   if (statusVal !== "ALL") params.append("status", statusVal);
   if (searchVal) params.append("search", searchVal);
@@ -45,12 +55,86 @@ async function fetchActivitiesFromBackend() {
     const response = await fetch(url + params.toString());
     if (response.ok) {
       const data = await response.json();
-      if (data.activities && data.activities.length > 0) {
+      if (Array.isArray(data.activities)) {
         activities = data.activities;
+
+        // Smart UX: If user is explicitly searching by roll number or name and 0 results found in May 2026,
+        // automatically search across all months so they don't get blocked by the month filter!
+        if (activities.length === 0 && searchVal && monthVal !== "ALL") {
+          try {
+            const fallbackRes = await fetch(`${API_BASE}/api/activities?search=${encodeURIComponent(searchVal)}`);
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              if (Array.isArray(fallbackData.activities) && fallbackData.activities.length > 0) {
+                activities = fallbackData.activities;
+                const mSelect = document.getElementById("monthSelect");
+                if (mSelect) mSelect.value = "ALL";
+              }
+            }
+          } catch (_) {}
+        }
       }
+    } else {
+      throw new Error("API error");
     }
   } catch (err) {
-    // Offline / file fallback
+    // Offline / client-side filter fallback using DEFAULT_SVECW_ACTIVITIES
+    activities = DEFAULT_SVECW_ACTIVITIES.filter(act => {
+      // Month & Custom Date Range Filter
+      if (monthVal !== "ALL") {
+        if (monthVal === "CUSTOM") {
+          const actDate = act.event_date || "";
+          if (startDate && actDate < startDate) return false;
+          if (endDate && actDate > endDate) return false;
+        } else {
+          const mTarget = monthVal.includes("-") ? monthVal.split("-")[1] : monthVal;
+          const actDate = act.event_date || "";
+          if (!actDate.startsWith(monthVal) && !actDate.includes(`-${mTarget}-`)) return false;
+        }
+      }
+      // Class / Year Filter
+      if (classYearVal !== "ALL") {
+        if (!act.class_year || !act.class_year.toUpperCase().includes(classYearVal.toUpperCase())) return false;
+      }
+      // Section Filter
+      if (sectionVal !== "ALL") {
+        if (!act.section || act.section.toUpperCase() !== sectionVal.toUpperCase()) return false;
+      }
+      // Category Filter
+      if (catVal !== "ALL") {
+        if (!act.category || !act.category.toLowerCase().includes(catVal.toLowerCase())) return false;
+      }
+      // Status Filter
+      if (statusVal !== "ALL") {
+        if (!act.status || act.status.toUpperCase() !== statusVal.toUpperCase()) return false;
+      }
+      // Search Filter
+      if (searchVal) {
+        const q = searchVal.toLowerCase();
+        const m1 = (act.regd_no || "").toLowerCase().includes(q);
+        const m2 = (act.student_name || "").toLowerCase().includes(q);
+        const m3 = (act.title || "").toLowerCase().includes(q);
+        const m4 = (act.organization || "").toLowerCase().includes(q);
+        if (!m1 && !m2 && !m3 && !m4) return false;
+      }
+      return true;
+    });
+
+    // Offline smart search across all months fallback
+    if (activities.length === 0 && searchVal && monthVal !== "ALL") {
+      const q = searchVal.toLowerCase();
+      const allMatches = DEFAULT_SVECW_ACTIVITIES.filter(act => {
+        return (act.regd_no || "").toLowerCase().includes(q) ||
+               (act.student_name || "").toLowerCase().includes(q) ||
+               (act.title || "").toLowerCase().includes(q) ||
+               (act.organization || "").toLowerCase().includes(q);
+      });
+      if (allMatches.length > 0) {
+        activities = allMatches;
+        const mSelect = document.getElementById("monthSelect");
+        if (mSelect) mSelect.value = "ALL";
+      }
+    }
   }
 
   renderActivitiesTable();
@@ -85,6 +169,12 @@ function performLogin(role, id, displayName) {
   document.getElementById("dashboardView").classList.remove("hidden");
   document.getElementById("loggedInHeaderBar").classList.remove("hidden");
   document.getElementById("userRoleSelect").value = role;
+
+  // When a student logs in, default month to "ALL" so their submissions across the academic year (e.g. October, May) appear immediately
+  if (role === "student") {
+    const mSelect = document.getElementById("monthSelect");
+    if (mSelect) mSelect.value = "ALL";
+  }
 
   updateUserBadgeAndRole(role, id, displayName);
   fetchActivitiesFromBackend();
@@ -139,6 +229,28 @@ function applyFilters() {
   fetchActivitiesFromBackend();
 }
 
+function resetToAllMonths() {
+  const mSelect = document.getElementById("monthSelect");
+  if (mSelect) mSelect.value = "ALL";
+  const customRow = document.getElementById("customDateRow");
+  if (customRow) customRow.classList.add("hidden");
+  const sDate = document.getElementById("customStartDate");
+  if (sDate) sDate.value = "";
+  const eDate = document.getElementById("customEndDate");
+  if (eDate) eDate.value = "";
+  const ySelect = document.getElementById("classYearSelect");
+  if (ySelect) ySelect.value = "ALL";
+  const sSelect = document.getElementById("sectionSelect");
+  if (sSelect) sSelect.value = "ALL";
+  const catSelect = document.getElementById("categorySelect");
+  if (catSelect) catSelect.value = "ALL";
+  const statSelect = document.getElementById("statusSelect");
+  if (statSelect) statSelect.value = "ALL";
+  const searchInp = document.getElementById("searchInput");
+  if (searchInp) searchInp.value = "";
+  fetchActivitiesFromBackend();
+}
+
 function renderActivitiesTable() {
   let displayList = activities;
   if (currentRole === "student" && currentUser.id) {
@@ -151,8 +263,19 @@ function renderActivitiesTable() {
   document.getElementById("statHackathons").innerText = displayList.filter(i => (i.category || "").includes("Hackathon")).length;
   document.getElementById("statNptel").innerText = displayList.filter(i => (i.category || "").includes("NPTEL") || (i.category || "").includes("Certification") || (i.category || "").includes("Internship")).length;
 
-  const monthVal = document.getElementById("monthSelect").value;
-  const label = monthVal === "2026-05" ? "May 2026" : monthVal === "ALL" ? "All Months" : monthVal;
+  const monthSelectEl = document.getElementById("monthSelect");
+  const monthVal = monthSelectEl ? monthSelectEl.value : "ALL";
+  const startDate = document.getElementById("customStartDate")?.value || "";
+  const endDate = document.getElementById("customEndDate")?.value || "";
+
+  let label = (monthSelectEl && monthSelectEl.selectedIndex >= 0)
+    ? monthSelectEl.options[monthSelectEl.selectedIndex].text
+    : (monthVal === "ALL" ? "All Months" : monthVal);
+
+  if (monthVal === "CUSTOM" && (startDate || endDate)) {
+    label = `${startDate || 'Start'} to ${endDate || 'Present'}`;
+  }
+
   document.getElementById("statFilterNote").innerText = `Filter: ${label}`;
   document.getElementById("printReportTitle").innerText = `Student Extracurricular Activities & Certifications Report (${label})`;
 
@@ -190,7 +313,7 @@ function renderActivitiesTable() {
         <td class="py-3 px-4 font-mono text-slate-400 font-bold">${idx + 1}</td>
         <td class="py-3 px-4">
           <div class="font-bold text-slate-900">${act.student_name}</div>
-          <div class="text-[11px] font-mono text-[#7a1228] font-bold">${act.regd_no} <span class="text-slate-500 font-normal">(${act.class_year || 'IT'})</span></div>
+          <div class="text-[11px] font-mono text-[#7a1228] font-bold">${act.regd_no} <span class="text-slate-500 font-normal">(${act.class_year || 'IT'}${act.section ? ' • Sec ' + act.section : ''})</span></div>
         </td>
         <td class="py-3 px-4"><span class="px-2.5 py-0.5 rounded-full font-bold text-[10px] ${catClass}">${act.category}</span></td>
         <td class="py-3 px-4 font-semibold text-slate-800 max-w-xs">${act.title}</td>
@@ -291,7 +414,8 @@ function exportToExcel() {
     "S.No": idx + 1,
     "Regd. Number": item.regd_no,
     "Student Name": item.student_name,
-    "Class": item.class_year || "IT",
+    "Class / Year": item.class_year || "IT",
+    "Section": item.section || "A",
     "Category": item.category,
     "Activity / Title": item.title,
     "College / Organization": item.organization,
@@ -335,6 +459,8 @@ async function handleFormSubmit(e) {
 
   const regd = document.getElementById("modalRoll").value.trim().toUpperCase();
   const name = document.getElementById("modalName").value.trim().toUpperCase();
+  const classYear = document.getElementById("modalClassYear")?.value || "III IT";
+  const section = document.getElementById("modalSection")?.value || "A";
   const cat = document.getElementById("modalCategory").value;
   const title = document.getElementById("modalTitle").value.trim();
   const org = document.getElementById("modalOrg").value.trim();
@@ -345,9 +471,11 @@ async function handleFormSubmit(e) {
   const fileInput = document.getElementById("modalCertificate");
   let localCertUrl = null;
   let certFile = null;
+  let isPdfFile = false;
   if (fileInput && fileInput.files && fileInput.files[0]) {
     certFile = fileInput.files[0];
     localCertUrl = URL.createObjectURL(certFile);
+    isPdfFile = (certFile.name && certFile.name.toLowerCase().endsWith(".pdf")) || certFile.type === "application/pdf";
   }
 
   // Create new record object
@@ -355,8 +483,8 @@ async function handleFormSubmit(e) {
     id: Date.now(),
     regd_no: regd,
     student_name: name,
-    class_year: "IV IT",
-    section: "A",
+    class_year: classYear,
+    section: section,
     category: cat,
     title: title,
     organization: org,
@@ -364,6 +492,7 @@ async function handleFormSubmit(e) {
     event_date: date,
     score_or_stipend: score,
     certificate_file: localCertUrl,
+    is_pdf: isPdfFile,
     status: currentRole === "faculty" ? "APPROVED" : "PENDING",
     faculty_remarks: null
   };
@@ -377,8 +506,8 @@ async function handleFormSubmit(e) {
   const formData = new FormData();
   formData.append("regd_no", regd);
   formData.append("student_name", name);
-  formData.append("class_year", "IV IT");
-  formData.append("section", "A");
+  formData.append("class_year", classYear);
+  formData.append("section", section);
   formData.append("category", cat);
   formData.append("title", title);
   formData.append("organization", org);
@@ -396,6 +525,8 @@ async function handleFormSubmit(e) {
     if (res.ok) {
       const data = await res.json();
       if (data.id) newActivity.id = data.id;
+      if (data.certificate_file) newActivity.certificate_file = data.certificate_file;
+      renderActivitiesTable();
     }
   } catch (err) {
     // Graceful offline save
@@ -461,7 +592,7 @@ async function renderAnalyticsCharts() {
     });
   }
 
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May (Focus)", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
   const monthCounts = monthKeys.map(k => monthlyData[k] || 0);
 
@@ -486,15 +617,7 @@ async function renderAnalyticsCharts() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              afterLabel: function(context) {
-                if (context.dataIndex === 4) return "⭐ Key SVECW accreditation month!";
-                return "";
-              }
-            }
-          }
+          legend: { display: false }
         },
         scales: {
           y: {
@@ -553,7 +676,7 @@ async function renderAnalyticsCharts() {
 
 // ==================== 7. CERTIFICATE VIEWER MODAL (Akshaya's Document Pipeline) ====================
 function openCertificateModal(id) {
-  const act = activities.find(i => i.id === id);
+  const act = activities.find(i => String(i.id) === String(id));
   if (!act) return;
 
   const modal = document.getElementById("certificateModal");
@@ -567,17 +690,29 @@ function openCertificateModal(id) {
 
   // If real uploaded file
   if (act.certificate_file) {
-    const isPdf = act.certificate_file.toLowerCase().endsWith(".pdf") || act.certificate_file.includes("application/pdf");
-    downloadLink.href = act.certificate_file;
+    let certUrl = act.certificate_file;
+    if (certUrl.startsWith("/uploads/") && API_BASE) {
+      certUrl = `${API_BASE}${certUrl}`;
+    }
+    const isPdf = act.is_pdf || certUrl.toLowerCase().endsWith(".pdf") || certUrl.includes("application/pdf");
+    downloadLink.href = certUrl;
     downloadLink.setAttribute("download", `SVECW_IT_${act.regd_no}_Certificate`);
 
     if (isPdf) {
       container.innerHTML = `
-        <iframe src="${act.certificate_file}" class="w-full h-[450px] rounded-lg border border-slate-200"></iframe>
+        <div class="w-full flex flex-col items-center gap-2">
+          <iframe src="${certUrl}" class="w-full h-[400px] rounded-lg border border-slate-200 bg-white"></iframe>
+          <div class="pt-1">
+            <a href="${certUrl}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#7a1228] hover:bg-[#5c0d1e] text-white text-xs font-bold px-3 py-1.5 rounded transition shadow-xs">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              <span>Open PDF Document in New Tab</span>
+            </a>
+          </div>
+        </div>
       `;
     } else {
       container.innerHTML = `
-        <img src="${act.certificate_file}" alt="Certificate Proof" class="max-h-[440px] max-w-full object-contain rounded-lg shadow-md border" />
+        <img src="${certUrl}" alt="Certificate Proof" class="max-h-[440px] max-w-full object-contain rounded-lg shadow-md border" />
       `;
     }
   } else {

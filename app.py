@@ -64,6 +64,10 @@ def get_app_js():
         return FileResponse(js_path, media_type="application/javascript")
     return JSONResponse(status_code=404, content={"message": "app.js not found"})
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
+
 
 
 # -------------------------------------------------------------
@@ -75,6 +79,7 @@ def get_activities(
     month: Optional[str] = Query(None, description="Month in 'YYYY-MM' or 'MM' format (e.g. 2026-05 or 05)"),
     category: Optional[str] = Query(None, description="Category filter (e.g. Hackathon, Internship, NPTEL)"),
     class_year: Optional[str] = Query(None, description="Class (e.g. II IT, III IT, IV IT)"),
+    section: Optional[str] = Query(None, description="Section (e.g. A, B, C)"),
     status: Optional[str] = Query(None, description="Status (APPROVED, PENDING, REJECTED)"),
     search: Optional[str] = Query(None, description="Search by Name, Regd No, or Event Title"),
     from_date: Optional[str] = Query(None, description="Start Date (YYYY-MM-DD)"),
@@ -87,7 +92,7 @@ def get_activities(
     params = []
     
     # Month Filter (e.g. '2026-05' or '05')
-    if month:
+    if month and month != "ALL" and month != "CUSTOM":
         if len(month) == 7:  # '2026-05'
             query += " AND strftime('%Y-%m', event_date) = ?"
             params.append(month)
@@ -103,25 +108,30 @@ def get_activities(
         query += " AND event_date <= ?"
         params.append(to_date)
         
-    # Category Filter
+    # Category Filter (Case-insensitive)
     if category and category != "ALL":
-        query += " AND category LIKE ?"
-        params.append(f"%{category}%")
+        query += " AND UPPER(category) LIKE ?"
+        params.append(f"%{category.upper()}%")
         
-    # Class Filter (II IT, III IT, IV IT)
+    # Class / Year Filter (II IT, III IT, IV IT)
     if class_year and class_year != "ALL":
-        query += " AND class_year = ?"
-        params.append(class_year)
+        query += " AND UPPER(class_year) = ?"
+        params.append(class_year.upper())
+
+    # Section Filter (A, B, C)
+    if section and section != "ALL":
+        query += " AND UPPER(section) = ?"
+        params.append(section.upper())
         
-    # Status Filter
+    # Status Filter (Case-insensitive matching for APPROVED / Approved)
     if status and status != "ALL":
-        query += " AND status = ?"
-        params.append(status)
+        query += " AND UPPER(status) = ?"
+        params.append(status.upper())
         
-    # Search Query
+    # Search Query (Case-insensitive across Regd No, Student Name, Title, and Organization)
     if search:
-        query += " AND (regd_no LIKE ? OR student_name LIKE ? OR title LIKE ? OR organization LIKE ?)"
-        search_pattern = f"%{search}%"
+        query += " AND (UPPER(regd_no) LIKE ? OR UPPER(student_name) LIKE ? OR UPPER(title) LIKE ? OR UPPER(organization) LIKE ?)"
+        search_pattern = f"%{search.strip().upper()}%"
         params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
         
     query += " ORDER BY event_date DESC"
@@ -199,7 +209,8 @@ async def create_activity(
     return {
         "success": True,
         "message": "Activity submitted successfully! Awaiting faculty verification.",
-        "id": new_id
+        "id": new_id,
+        "certificate_file": certificate_path
     }
 
 
