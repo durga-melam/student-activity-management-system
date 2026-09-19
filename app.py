@@ -64,6 +64,13 @@ def get_app_js():
         return FileResponse(js_path, media_type="application/javascript")
     return JSONResponse(status_code=404, content={"message": "app.js not found"})
 
+@app.get("/svecw_logo.png")
+def get_logo():
+    logo_path = os.path.join(STATIC_DIR, "svecw_logo.png")
+    if os.path.exists(logo_path):
+        return FileResponse(logo_path, media_type="image/png")
+    return JSONResponse(status_code=404, content={"message": "svecw_logo.png not found"})
+
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return Response(status_code=204)
