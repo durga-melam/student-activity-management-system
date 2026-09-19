@@ -28,12 +28,10 @@ const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" 
 
 // ==================== 1. FETCH ACTIVITIES ====================
 async function fetchActivitiesFromBackend() {
-  const monthVal = document.getElementById("monthSelect")?.value || "ALL";
-  const startDate = document.getElementById("customStartDate")?.value || "";
-  const endDate = document.getElementById("customEndDate")?.value || "";
   const classYearVal = document.getElementById("classYearSelect")?.value || "ALL";
   const sectionVal = document.getElementById("sectionSelect")?.value || "ALL";
-  const catVal = document.getElementById("categorySelect")?.value || "ALL";
+  const catVal =   const monthVal = document.getElementById("monthSelect")?.value || "ALL";
+document.getElementById("categorySelect")?.value || "ALL";
   const statusVal = document.getElementById("statusSelect")?.value || "ALL";
   const searchVal = document.getElementById("searchInput")?.value?.trim() || "";
 
@@ -41,10 +39,6 @@ async function fetchActivitiesFromBackend() {
   const params = new URLSearchParams();
 
   if (monthVal !== "ALL" && monthVal !== "CUSTOM") params.append("month", monthVal);
-  if (monthVal === "CUSTOM") {
-    if (startDate) params.append("from_date", startDate);
-    if (endDate) params.append("to_date", endDate);
-  }
   if (classYearVal !== "ALL") params.append("class_year", classYearVal);
   if (sectionVal !== "ALL") params.append("section", sectionVal);
   if (catVal !== "ALL") params.append("category", catVal);
@@ -80,17 +74,11 @@ async function fetchActivitiesFromBackend() {
   } catch (err) {
     // Offline / client-side filter fallback using DEFAULT_SVECW_ACTIVITIES
     activities = DEFAULT_SVECW_ACTIVITIES.filter(act => {
-      // Month & Custom Date Range Filter
-      if (monthVal !== "ALL") {
-        if (monthVal === "CUSTOM") {
-          const actDate = act.event_date || "";
-          if (startDate && actDate < startDate) return false;
-          if (endDate && actDate > endDate) return false;
-        } else {
-          const mTarget = monthVal.includes("-") ? monthVal.split("-")[1] : monthVal;
-          const actDate = act.event_date || "";
-          if (!actDate.startsWith(monthVal) && !actDate.includes(`-${mTarget}-`)) return false;
-        }
+      // Month Filter
+      if (monthVal !== "ALL" && monthVal !== "CUSTOM") {
+        const mTarget = monthVal.includes("-") ? monthVal.split("-")[1] : monthVal;
+        const actDate = act.event_date || "";
+        if (!actDate.startsWith(monthVal) && !actDate.includes(`-${mTarget}-`)) return false;
       }
       // Class / Year Filter
       if (classYearVal !== "ALL") {
@@ -140,27 +128,73 @@ async function fetchActivitiesFromBackend() {
   renderActivitiesTable();
 }
 
-// ==================== 2. LOGIN / LOGOUT ====================
-function handleStudentLogin(e) {
-  if (e) e.preventDefault();
-  const roll = document.getElementById("loginStudentRoll").value.trim().toUpperCase() || "22B01A1231";
-  performLogin("student", roll, "IT Student");
+// ==================== 2. AUTHENTICATION & PASSWORD ENGINE ====================
+
+// Local storage helper for student & faculty passwords
+function getStoredPasswords() {
+  const stored = localStorage.getItem("svecw_portal_passwords");
+  if (stored) {
+    try { return JSON.parse(stored); } catch (_) {}
+  }
+  return {
+    "RAJESH": "rajesh@123" // Default password for Rajesh Sir
+  };
 }
 
-function handleFacultyLogin(e) {
-  if (e) e.preventDefault();
-  const facId = document.getElementById("loginFacultyId").value.trim().toUpperCase() || "SVECW-IT-FAC01";
-  performLogin("faculty", facId, "Faculty Coordinator (IT)");
+function saveStoredPasswords(passwords) {
+  localStorage.setItem("svecw_portal_passwords", JSON.stringify(passwords));
 }
 
-function quickLogin(role) {
-  if (role === "student") {
-    performLogin("student", "22B01A1231", "DEVAKOTI RENUKA GANGA");
+// Single Unified Login Handler
+function handleUnifiedLogin(e) {
+  if (e) e.preventDefault();
+  
+  const username = document.getElementById("loginUsername").value.trim().toUpperCase();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (!username || !password) {
+    alert("Please enter both User ID / Roll Number and Password.");
+    return;
+  }
+
+  const passwords = getStoredPasswords();
+
+  // 1. RAJESH SIR (Admin / Faculty Coordinator)
+  if (username === "RAJESH") {
+    const expectedPass = passwords["RAJESH"] || "rajesh@123";
+    if (password === expectedPass) {
+      performLogin("faculty", "RAJESH", "Dr. S. Rajesh (Faculty Coordinator)");
+    } else {
+      alert("Incorrect password for Dr. S. Rajesh.\n\nTip: If you forgot it, click 'Forgot Password?' and use the Department Master PIN (SVECW-IT-2001).");
+    }
+    return;
+  }
+
+  // 2. STUDENT LOGIN (Roll Number, e.g. 23B01A12B1)
+  const studentExpectedPass = passwords[username] || "svecw@123";
+  if (password === studentExpectedPass) {
+    const existing = activities.find(a => a.regd_no === username);
+    const studentName = existing ? existing.student_name : "IT Student";
+    performLogin("student", username, studentName);
   } else {
-    performLogin("faculty", "SVECW-IT-FAC01", "Dr. S. Ravi Kumar (Faculty Coordinator)");
+    alert(`Incorrect password for Roll No: ${username}.\nDefault password is "svecw@123".\nIf you forgot, contact Dr. S. Rajesh.`);
   }
 }
 
+// 1-Click Quick Demo Login (for Rajesh Sir or Student testing)
+function quickLoginDemo(role) {
+  if (role === "admin") {
+    document.getElementById("loginUsername").value = "RAJESH";
+    document.getElementById("loginPassword").value = (getStoredPasswords()["RAJESH"] || "rajesh@123");
+    performLogin("faculty", "RAJESH", "Dr. S. Rajesh (Faculty Coordinator)");
+  } else {
+    document.getElementById("loginUsername").value = "23B01A12B1";
+    document.getElementById("loginPassword").value = (getStoredPasswords()["23B01A12B1"] || "svecw@123");
+    performLogin("student", "23B01A12B1", "MEDIDI CHARANYA");
+  }
+}
+
+// Start User Session
 function performLogin(role, id, displayName) {
   currentRole = role;
   currentUser = { id, name: displayName, role };
@@ -168,9 +202,8 @@ function performLogin(role, id, displayName) {
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("dashboardView").classList.remove("hidden");
   document.getElementById("loggedInHeaderBar").classList.remove("hidden");
-  document.getElementById("userRoleSelect").value = role;
 
-  // When a student logs in, default month to "ALL" so their submissions across the academic year (e.g. October, May) appear immediately
+  // When student logs in, default month to "ALL" so their submissions appear immediately
   if (role === "student") {
     const mSelect = document.getElementById("monthSelect");
     if (mSelect) mSelect.value = "ALL";
@@ -178,16 +211,92 @@ function performLogin(role, id, displayName) {
 
   updateUserBadgeAndRole(role, id, displayName);
   fetchActivitiesFromBackend();
+  if (window.lucide) lucide.createIcons();
 }
 
 function handleLogout() {
   currentRole = null;
   currentUser = { id: "", name: "", role: "" };
+  document.getElementById("loginUsername").value = "";
+  document.getElementById("loginPassword").value = "";
   document.getElementById("loginView").classList.remove("hidden");
   document.getElementById("dashboardView").classList.add("hidden");
   document.getElementById("loggedInHeaderBar").classList.add("hidden");
   if (window.lucide) lucide.createIcons();
 }
+
+// ==================== PASSWORD MODAL HANDLERS ====================
+function openChangePasswordModal() {
+  document.getElementById("changeOldPassword").value = "";
+  document.getElementById("changeNewPassword").value = "";
+  document.getElementById("changeConfirmPassword").value = "";
+  document.getElementById("changePasswordModal").classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeChangePasswordModal() {
+  document.getElementById("changePasswordModal").classList.add("hidden");
+}
+
+function handlePasswordChange(e) {
+  e.preventDefault();
+  const oldPass = document.getElementById("changeOldPassword").value.trim();
+  const newPass = document.getElementById("changeNewPassword").value.trim();
+  const confirmPass = document.getElementById("changeConfirmPassword").value.trim();
+
+  if (newPass !== confirmPass) {
+    alert("New passwords do not match. Please re-enter.");
+    return;
+  }
+
+  const passwords = getStoredPasswords();
+  const currentExpected = passwords[currentUser.id] || (currentUser.role === "faculty" ? "rajesh@123" : "svecw@123");
+
+  if (oldPass !== currentExpected) {
+    alert("Current password is incorrect!");
+    return;
+  }
+
+  passwords[currentUser.id] = newPass;
+  saveStoredPasswords(passwords);
+
+  closeChangePasswordModal();
+  alert(`Success: Password updated for ${currentUser.name} (${currentUser.id})!`);
+}
+
+function openForgotModal() {
+  document.getElementById("forgotMasterPin").value = "";
+  document.getElementById("forgotNewPassword").value = "";
+  document.getElementById("forgotModal").classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeForgotModal() {
+  document.getElementById("forgotModal").classList.add("hidden");
+}
+
+function handleMasterReset() {
+  const pin = document.getElementById("forgotMasterPin").value.trim();
+  const newPass = document.getElementById("forgotNewPassword").value.trim();
+
+  if (pin !== "SVECW-IT-2001") {
+    alert("Invalid Department Master PIN! Only authorized Faculty Coordinator Dr. S. Rajesh can reset using the master PIN.");
+    return;
+  }
+
+  if (!newPass || newPass.length < 4) {
+    alert("Please enter a valid new password (at least 4 characters).");
+    return;
+  }
+
+  const passwords = getStoredPasswords();
+  passwords["RAJESH"] = newPass;
+  saveStoredPasswords(passwords);
+
+  closeForgotModal();
+  alert("Success: Dr. S. Rajesh's admin password has been reset successfully! You can now sign in with your new password.");
+}
+
 
 function switchRole(val) {
   currentRole = val;
@@ -232,12 +341,6 @@ function applyFilters() {
 function resetToAllMonths() {
   const mSelect = document.getElementById("monthSelect");
   if (mSelect) mSelect.value = "ALL";
-  const customRow = document.getElementById("customDateRow");
-  if (customRow) customRow.classList.add("hidden");
-  const sDate = document.getElementById("customStartDate");
-  if (sDate) sDate.value = "";
-  const eDate = document.getElementById("customEndDate");
-  if (eDate) eDate.value = "";
   const ySelect = document.getElementById("classYearSelect");
   if (ySelect) ySelect.value = "ALL";
   const sSelect = document.getElementById("sectionSelect");
@@ -265,17 +368,9 @@ function renderActivitiesTable() {
 
   const monthSelectEl = document.getElementById("monthSelect");
   const monthVal = monthSelectEl ? monthSelectEl.value : "ALL";
-  const startDate = document.getElementById("customStartDate")?.value || "";
-  const endDate = document.getElementById("customEndDate")?.value || "";
-
-  let label = (monthSelectEl && monthSelectEl.selectedIndex >= 0)
+  const label = (monthSelectEl && monthSelectEl.selectedIndex >= 0)
     ? monthSelectEl.options[monthSelectEl.selectedIndex].text
     : (monthVal === "ALL" ? "All Months" : monthVal);
-
-  if (monthVal === "CUSTOM" && (startDate || endDate)) {
-    label = `${startDate || 'Start'} to ${endDate || 'Present'}`;
-  }
-
   document.getElementById("statFilterNote").innerText = `Filter: ${label}`;
   document.getElementById("printReportTitle").innerText = `Student Extracurricular Activities & Certifications Report (${label})`;
 
@@ -336,30 +431,19 @@ function renderActivitiesTable() {
             </div>
           ` : ''}
         </td>
-        <td class="py-3 px-4 text-right no-print">
+        <td class="py-3 px-4 text-right no-print faculty-col ${currentRole === 'student' ? 'hidden' : ''}">
           <div class="flex items-center justify-end space-x-1.5">
-            ${currentRole === 'faculty' ? `
-              ${!isApproved ? `
-                <button onclick="approveRecord(${act.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold px-2 py-1 rounded text-[11px] transition">Approve</button>
-                ${!isRejected ? `
-                  <button onclick="openRejectModal(${act.id})" class="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold px-2 py-1 rounded text-[11px] transition">Reject</button>
-                ` : ''}
-              ` : `
-                <span class="text-emerald-700 text-[11px] font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">✓ Verified</span>
-              `}
-              <button onclick="deleteRecord(${act.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition" title="Delete record">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
+            ${!isApproved ? `
+              <button onclick="approveRecord(${act.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold px-2 py-1 rounded text-[11px] transition">Approve</button>
+              ${!isRejected ? `
+                <button onclick="openRejectModal(${act.id})" class="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold px-2 py-1 rounded text-[11px] transition">Reject</button>
+              ` : ''}
             ` : `
-              ${!isApproved ? `
-                <button onclick="deleteRecord(${act.id})" class="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded text-[11px] font-bold transition flex items-center gap-1" title="Delete Mistaken Submission">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  <span>Delete</span>
-                </button>
-              ` : `
-                <span class="text-slate-400 text-[11px] font-semibold">✓ Verified</span>
-              `}
+              <span class="text-emerald-700 text-[11px] font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">✓ Verified</span>
             `}
+            <button onclick="deleteRecord(${act.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition" title="Delete record">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
           </div>
         </td>
       `;
@@ -450,14 +534,43 @@ function exportToPdf() {
 // ==================== 5. ADD ACTIVITY (Local & Backend Seamless Append!) ====================
 function openAddModal() {
   document.getElementById("modalDate").value = new Date().toISOString().split("T")[0];
+  const autoBadge = document.getElementById("modalStudentAutoBadge");
+  const badgeInfo = document.getElementById("modalBadgeStudentInfo");
+  const detailsSection = document.getElementById("modalStudentDetailsSection");
+  const rollInput = document.getElementById("modalRoll");
+  const nameInput = document.getElementById("modalName");
+
   if (currentRole === "student") {
-    document.getElementById("modalRoll").value = currentUser.id || "22B01A1231";
-    document.getElementById("modalName").value = currentUser.name || "DEVAKOTI RENUKA GANGA";
+    // Student view: show verified badge, hide typing inputs
+    if (autoBadge) autoBadge.classList.remove("hidden");
+    if (badgeInfo) badgeInfo.innerText = `${currentUser.name} (${currentUser.id})`;
+    if (detailsSection) detailsSection.classList.add("hidden");
+
+    // Auto-fill hidden inputs so certificate submission carries student's roll and name
+    if (rollInput) {
+      rollInput.value = currentUser.id;
+      rollInput.removeAttribute("required");
+    }
+    if (nameInput) {
+      nameInput.value = currentUser.name;
+      nameInput.removeAttribute("required");
+    }
   } else {
-    document.getElementById("modalRoll").value = "";
-    document.getElementById("modalName").value = "";
+    // Rajesh Sir view: show editable inputs so sir can manually add for any student
+    if (autoBadge) autoBadge.classList.add("hidden");
+    if (detailsSection) detailsSection.classList.remove("hidden");
+    if (rollInput) {
+      rollInput.value = "";
+      rollInput.setAttribute("required", "required");
+    }
+    if (nameInput) {
+      nameInput.value = "";
+      nameInput.setAttribute("required", "required");
+    }
   }
+
   document.getElementById("addModal").classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
 }
 
 function closeAddModal() {
@@ -482,11 +595,9 @@ async function handleFormSubmit(e) {
   const fileInput = document.getElementById("modalCertificate");
   let localCertUrl = null;
   let certFile = null;
-  let isPdfFile = false;
   if (fileInput && fileInput.files && fileInput.files[0]) {
     certFile = fileInput.files[0];
     localCertUrl = URL.createObjectURL(certFile);
-    isPdfFile = (certFile.name && certFile.name.toLowerCase().endsWith(".pdf")) || certFile.type === "application/pdf";
   }
 
   // Create new record object
@@ -503,7 +614,6 @@ async function handleFormSubmit(e) {
     event_date: date,
     score_or_stipend: score,
     certificate_file: localCertUrl,
-    is_pdf: isPdfFile,
     status: currentRole === "faculty" ? "APPROVED" : "PENDING",
     faculty_remarks: null
   };
@@ -536,8 +646,6 @@ async function handleFormSubmit(e) {
     if (res.ok) {
       const data = await res.json();
       if (data.id) newActivity.id = data.id;
-      if (data.certificate_file) newActivity.certificate_file = data.certificate_file;
-      renderActivitiesTable();
     }
   } catch (err) {
     // Graceful offline save
@@ -687,7 +795,7 @@ async function renderAnalyticsCharts() {
 
 // ==================== 7. CERTIFICATE VIEWER MODAL (Akshaya's Document Pipeline) ====================
 function openCertificateModal(id) {
-  const act = activities.find(i => String(i.id) === String(id));
+  const act = activities.find(i => i.id === id);
   if (!act) return;
 
   const modal = document.getElementById("certificateModal");
@@ -701,29 +809,17 @@ function openCertificateModal(id) {
 
   // If real uploaded file
   if (act.certificate_file) {
-    let certUrl = act.certificate_file;
-    if (certUrl.startsWith("/uploads/") && API_BASE) {
-      certUrl = `${API_BASE}${certUrl}`;
-    }
-    const isPdf = act.is_pdf || certUrl.toLowerCase().endsWith(".pdf") || certUrl.includes("application/pdf");
-    downloadLink.href = certUrl;
+    const isPdf = act.certificate_file.toLowerCase().endsWith(".pdf") || act.certificate_file.includes("application/pdf");
+    downloadLink.href = act.certificate_file;
     downloadLink.setAttribute("download", `SVECW_IT_${act.regd_no}_Certificate`);
 
     if (isPdf) {
       container.innerHTML = `
-        <div class="w-full flex flex-col items-center gap-2">
-          <iframe src="${certUrl}" class="w-full h-[400px] rounded-lg border border-slate-200 bg-white"></iframe>
-          <div class="pt-1">
-            <a href="${certUrl}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#7a1228] hover:bg-[#5c0d1e] text-white text-xs font-bold px-3 py-1.5 rounded transition shadow-xs">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-              <span>Open PDF Document in New Tab</span>
-            </a>
-          </div>
-        </div>
+        <iframe src="${act.certificate_file}" class="w-full h-[450px] rounded-lg border border-slate-200"></iframe>
       `;
     } else {
       container.innerHTML = `
-        <img src="${certUrl}" alt="Certificate Proof" class="max-h-[440px] max-w-full object-contain rounded-lg shadow-md border" />
+        <img src="${act.certificate_file}" alt="Certificate Proof" class="max-h-[440px] max-w-full object-contain rounded-lg shadow-md border" />
       `;
     }
   } else {
