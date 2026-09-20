@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHRI VISHNU ENGINEERING COLLEGE FOR WOMEN (Autonomous) :: IT Department</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Full-Width Excel (.xlsx) Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background-color: #fcf8fa; color: #1e293b; padding-bottom: 50px; }
+
+        /* ---------------- 1. TOP HEADER ---------------- */
+        .header-top {
+            background: #ffffff;
+            padding: 10px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f3e5ea;
+        }
+        .college-branding {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .college-logo-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+        .college-text h1 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #831843;
+            letter-spacing: 0.3px;
+        }
+        .college-text h1 span {
+            color: #ea580c;
+            font-weight: 700;
+        }
+        .college-text p {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        .header-badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .badge-estd {
+            border: 1px solid #10b981;
+            color: #059669;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #ecfdf5;
+        }
+        .badge-dept {
+            background: #fdf2f8;
+            color: #9d174d;
+            border: 1px solid #fbcfe8;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+        }
+
+        /* ---------------- 2. SUB-BAR ---------------- */
+        .sub-header-bar {
+            background: #fff5f8;
+            border-bottom: 1px solid #fce7f3;
+            padding: 8px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logged-user-info {
+            font-size: 12px;
+            color: #475569;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .user-dot {
+            width: 8px;
+            height: 8px;
+            background: #9333ea;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .logged-user-name {
+            color: #831843;
+            font-weight: 700;
+        }
+        .header-action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-top {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-analytics {
+            background: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+        }
+        .btn-add-activity {
+            background: #ea580c;
+            color: white;
+        }
+        .btn-logout-top {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #fecdd3;
+        }
+        .btn-top:hover { opacity: 0.9; }
+
+        /* ---------------- 3. MAIN DASHBOARD CONTENT ---------------- */
+        .main-wrapper {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 24px;
+        }
+
+        /* ---------------- 4 SUMMARY CARDS ---------------- */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            border: 1px solid #f1e5e9;
+        }
+        .summary-card.c-total { border-top: 3px solid #db2777; }
+        .summary-card.c-students { border-top: 3px solid #8b5cf6; }
+        .summary-card.c-hackathons { border-top: 3px solid #f97316; }
+        .summary-card.c-nptel { border-top: 3px solid #10b981; }
+
+        .card-info .c-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .card-info .c-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 4px 0 2px 0;
+        }
+        .card-info .c-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .card-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .c-total .card-icon-box { background: #fdf2f8; color: #db2777; }
+        .c-students .card-icon-box { background: #f3e8ff; color: #8b5cf6; }
+        .c-hackathons .card-icon-box { background: #fef3c7; color: #f59e0b; }
+        .c-nptel .card-icon-box { background: #ecfdf5; color: #10b981; }
+
+        /* ---------------- 5. FILTER TOOLBAR ---------------- */
+        .filter-panel {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid #f1e5e9;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+        .filter-row-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .filter-row-2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .filter-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #b45309;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .filter-select, .search-field, .date-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #fed7aa;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            background: #fff;
+            outline: none;
+        }
+        .filter-select:focus, .search-field:focus, .date-input:focus {
+            border-color: #ea580c;
+        }
+        
+        /* Custom Date Range Box */
+        .custom-date-box {
+            display: none;
+            grid-column: span 5;
+            background: #fffbeb;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px dashed #f59e0b;
+            margin-bottom: 14px;
+            align-items: center;
+            gap: 14px;
+        }
+        .custom-date-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .custom-date-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #b45309;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 480px;
+        }
+        .btn-export-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-export {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-excel-green { background: #15803d; }
+        .btn-pdf-maroon { background: #831843; }
+        .btn-export:hover { opacity: 0.92; }
+
+        /* ---------------- 6. DATA TABLE ---------------- */
+        .table-container {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #f1e5e9;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th {
+            background: #fff5f8;
+            padding: 14px 16px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #475569;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1.5px solid #fce7f3;
+        }
+        td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f8fafc;
+            vertical-align: middle;
+        }
+        tr:hover { background: #fffbfd; }
+
+        /* Badges */
+        .badge-cat-hack { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+        .badge-cat-intern { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+        .badge-cat-paper { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+        .badge-cat-cert { background: #ecfdf5; color: #047857; border: 1px solid #d1fae5; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+
+        .btn-view-cert {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #ffe4e6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ---------------- 7. SUBMISSION MODAL ---------------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 14px;
+            max-width: 600px;
+            width: 100%;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 17px; color: #831843; font-weight: 800; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 12px; font-weight: 700; color: #475569; }
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .btn-modal-submit {
+            background: #ea580c;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 14px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. TOP HEADER WITH OFFICIAL SVECW LOGO -->
+    <header class="header-top">
+        <div class="college-branding">
+            <img src="/static/svecw_logo.png" 
+                 alt="SVECW Logo" 
+                 class="college-logo-img" 
+                 onerror="this.onerror=null; this.src='/svecw_logo.png';">
+            <div class="college-text">
+                <h1>SHRI VISHNU ENGINEERING COLLEGE FOR WOMEN <span>(Autonomous)</span></h1>
+                <p>Vishnupur, BHIMAVARAM, West Godavari Dist. - 534202 • Ph: 08816 - 250847 • COUNSELLING CODE : VISW</p>
+            </div>
+        </div>
+        <div class="header-badges">
+            <span class="badge-estd">ESTD 2001</span>
+            <span class="badge-dept">Department of Information Technology</span>
+        </div>
+    </header>
+
+    <!-- 2. SUB-BAR -->
+    <div class="sub-header-bar">
+        <div class="logged-user-info">
+            Logged in as: <span class="user-dot"></span> <span class="logged-user-name" id="userNameLabel">Hi, 22B01A1231</span>
+        </div>
+        <div class="header-action-buttons">
+            <button class="btn-top btn-analytics" onclick="alert('Viewing Department Analytics')">
+                <i class="fa-solid fa-chart-pie"></i> Analytics
+            </button>
+            <!-- Single Clean + Add Activity Button -->
+            <button class="btn-top btn-add-activity" onclick="openAddModal()">
+                <i class="fa-solid fa-plus"></i> Add Activity
+            </button>
+            <button class="btn-top btn-logout-top" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. MAIN DASHBOARD CONTENT -->
+    <main class="main-wrapper">
+
+        <!-- 4 SUMMARY CARDS -->
+        <div class="cards-grid">
+            <div class="summary-card c-total">
+                <div class="card-info">
+                    <div class="c-label">Total Activities</div>
+                    <div class="c-value" id="cardTotalActivities">35</div>
+                    <div class="c-sub" id="cardFilterSubtitle">All Verified Records</div>
+                </div>
+                <div class="card-icon-box"><i class="fa-solid fa-award"></i></div>
+            </div>
+
+            <div class="summary-card c-students">
+                <div class="card-info">
+                    <div class="c-label">Distinct Students</div>
+                    <div class="c-value" id="cardDistinctStudents">28</div>
+                    <div class="c-sub">Unique IT Participants</div>
+                </div>
+                <div class="card-icon-box"><i class="fa-solid fa-user-group"></i></div>
+            </div>
+
+            <div class="summary-card c-hackathons">
+                <div class="card-info">
+                    <div class="c-label">Hackathons</div>
+                    <div class="c-value" id="cardHackathons">11</div>
+                    <div class="c-sub">SIH & Tech Fests</div>
+                </div>
+                <div class="card-icon-box"><i class="fa-solid fa-code"></i></div>
+            </div>
+
+            <div class="summary-card c-nptel">
+                <div class="card-info">
+                    <div class="c-label">NPTEL / Global</div>
+                    <div class="c-value" id="cardNptel">2</div>
+                    <div class="c-sub">Certifications Done</div>
+                </div>
+                <div class="card-icon-box"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+        </div>
+
+        <!-- 2-ROW FILTER PANEL -->
+        <div class="filter-panel">
+            <!-- Row 1 -->
+            <div class="filter-row-1">
+                <!-- 1. MONTH SELECTOR -->
+                <div class="filter-item">
+                    <label class="filter-label"><i class="fa-regular fa-calendar"></i> Select Month</label>
+                    <select id="monthFilter" class="filter-select">
+                        <option value="" selected>All Months</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                        <option value="CUSTOM" style="font-weight: 800; color: #ea580c;">🗓️ Custom Date Range (From - To)...</option>
+                    </select>
+                </div>
+
+                <!-- 2. EVENT YEAR SELECTOR -->
+                <div class="filter-item">
+                    <label class="filter-label"><i class="fa-solid fa-calendar-check"></i> Event Year</label>
+                    <select id="eventYearFilter" class="filter-select">
+                        <option value="" selected>All Years</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+
+                <!-- 3. CLASS / YEAR -->
+                <div class="filter-item">
+                    <label class="filter-label"><i class="fa-solid fa-graduation-cap"></i> Class / Year</label>
+                    <select id="classFilter" class="filter-select">
+                        <option value="">All Years</option>
+                        <option value="II IT">II IT</option>
+                        <option value="III IT">III IT</option>
+                        <option value="IV IT">IV IT</option>
+                    </select>
+                </div>
+
+                <!-- 4. SECTION -->
+                <div class="filter-item">
+                    <label class="filter-label"><i class="fa-solid fa-users"></i> Section</label>
+                    <select id="sectionFilter" class="filter-select">
+                        <option value="">All Sections</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                    </select>
+                </div>
+
+                <!-- 5. CATEGORY -->
+                <div class="filter-item">
+                    <label class="filter-label"><i class="fa-solid fa-briefcase"></i> Activity Category</label>
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="Hackathon">Hackathon</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Journal / Paper">Journal / Paper</option>
+                        <option value="NPTEL / Certification">NPTEL / Certification</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Custom Date Range Expandable Box -->
+            <div id="customDateRangeBox" class="custom-date-box">
+                <div class="custom-date-group">
+                    <label><i class="fa-regular fa-calendar-days"></i> From Date:</label>
+                    <input type="date" id="fromDateInput" class="date-input" style="width: 170px;">
+                </div>
+                <div class="custom-date-group">
+                    <label><i class="fa-regular fa-calendar-days"></i> To Date:</label>
+                    <input type="date" id="toDateInput" class="date-input" style="width: 170px;">
+                </div>
+                <button onclick="applyFilters()" class="btn-export btn-excel-green" style="padding: 6px 14px; font-size: 12px;">Apply Range</button>
+                <button onclick="resetCustomDate()" class="btn-export" style="background:#e2e8f0; color:#334155; padding: 6px 12px; font-size: 12px;">Clear</button>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="filter-row-2">
+                <div class="filter-item" style="width: 220px;">
+                    <label class="filter-label"><i class="fa-solid fa-circle-check"></i> Verification Status</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Records</option>
+                        <option value="APPROVED">Approved Only</option>
+                        <option value="PENDING">Pending Only</option>
+                    </select>
+                </div>
+
+                <div class="filter-item search-container">
+                    <label class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Search Student / Roll No</label>
+                    <input type="text" id="searchInput" class="search-field" placeholder="e.g. 23B01A1278, Name, College...">
+                </div>
+
+                <div class="btn-export-group">
+                    <button class="btn-export btn-excel-green" onclick="exportToExcel()">
+                        <i class="fa-solid fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn-export btn-pdf-maroon" onclick="window.print()">
+                        <i class="fa-solid fa-print"></i> Print / PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8 COLUMNS DATA TABLE -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;">#</th>
+                        <th style="width: 230px;">STUDENT DETAILS</th>
+                        <th style="width: 140px;">CATEGORY</th>
+                        <th>TITLE / EVENT</th>
+                        <th style="width: 220px;">ORGANIZATION</th>
+                        <th style="width: 120px;">DATE</th>
+                        <th style="width: 140px;">ACHIEVEMENT</th>
+                        <th style="width: 110px; text-align: center;">CERTIFICATE</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTableBody">
+                    <!-- Populated dynamically by app.js -->
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- ADD ACTIVITY MODAL -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Add Student Activity Record</h3>
+                <span style="cursor:pointer; font-size:20px;" onclick="closeAddModal()">&times;</span>
+            </div>
+            <form id="activityForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Regd. No *</label>
+                        <input type="text" name="regd_no" placeholder="e.g. 23B01A1278" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Student Name *</label>
+                        <input type="text" name="student_name" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Class / Year *</label>
+                        <select name="class_year" required>
+                            <option value="II IT">II IT</option>
+                            <option value="III IT">III IT</option>
+                            <option value="IV IT">IV IT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select name="category" required>
+                            <option value="Hackathon">Hackathon</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Journal / Paper">Journal / Paper</option>
+                            <option value="NPTEL / Certification">NPTEL / Certification</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Event / Course / Paper Title *</label>
+                        <input type="text" name="title" placeholder="Title description" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Organization / College *</label>
+                        <input type="text" name="organization" placeholder="e.g. Google / SRKR" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Event Date *</label>
+                        <input type="date" name="event_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Achievement / Stipend</label>
+                        <input type="text" name="score_or_stipend" placeholder="e.g. 1st Prize / Rs. 1,35,000">
+                    </div>
+                    <div class="form-group full">
+                        <label>Certificate Proof (PDF/Image)</label>
+                        <input type="file" name="certificate" accept=".pdf,.png,.jpg,.jpeg">
+                    </div>
+                </div>
+                <button type="submit" class="btn-modal-submit">Submit Record to Database</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="/static/app.js"></script>
+    <script>
+        function openAddModal() { document.getElementById("addModal").style.display = "flex"; }
+        function closeAddModal() { document.getElementById("addModal").style.display = "none"; }
+    </script>
+</body>
+</html>
