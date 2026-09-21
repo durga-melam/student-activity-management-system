@@ -28,7 +28,7 @@ function initApp() {
 }
 
 // -------------------------------------------------------------
-// 1. LOGIN HANDLER
+// 1. LOGIN & SESSION HANDLER
 // -------------------------------------------------------------
 function setupLoginHandler() {
     const loginForm = document.getElementById("loginForm");
@@ -36,7 +36,12 @@ function setupLoginHandler() {
         loginForm.addEventListener("submit", (e) => {
             e.preventDefault();
             const uname = (document.getElementById("username") || {}).value.trim() || "22B01A1231";
-            localStorage.setItem("svecw_user", JSON.stringify({ name: uname.toUpperCase() }));
+            const isRajesh = (uname.toLowerCase() === "rajesh");
+            localStorage.setItem("svecw_user", JSON.stringify({ 
+                name: isRajesh ? "Rajesh Sir (Faculty Incharge)" : uname.toUpperCase(), 
+                regd_no: uname.toUpperCase(),
+                role: isRajesh ? "FACULTY" : "STUDENT"
+            }));
             window.location.href = "/dashboard";
         });
     }
@@ -46,7 +51,6 @@ function loadUserSession() {
     const user = JSON.parse(localStorage.getItem("svecw_user") || "null");
     const label = document.getElementById("userNameLabel");
     if (label && user) {
-        // Clean "Hi, <Register Number / Name>" format
         label.innerText = `Hi, ${user.name || user.regd_no || '22B01A1231'}`;
     }
 }
@@ -71,16 +75,20 @@ async function loadActivities() {
 }
 
 // -------------------------------------------------------------
-// 3. RENDER TABLE (8 Columns 1-to-1 Mapping)
+// 3. RENDER TABLE (9 Columns - Rajesh gets Buttons, Students get Status)
 // -------------------------------------------------------------
 function renderTable(list) {
     const tbody = document.getElementById("activityTableBody");
     if (!tbody) return;
 
+    const userSession = JSON.parse(localStorage.getItem("svecw_user") || "{}");
+    // 👉 ONLY RAJESH ANNA GETS APPROVE/REJECT BUTTONS
+    const isRajesh = (userSession.role === "FACULTY" && (userSession.regd_no || "").toLowerCase() === "rajesh");
+
     if (!list || list.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align:center; padding: 28px; color: #94a3b8; font-size: 14px;">
+                <td colspan="9" style="text-align:center; padding: 28px; color: #94a3b8; font-size: 14px;">
                     🔍 No student activity records found for this date/filter.
                 </td>
             </tr>
@@ -137,6 +145,31 @@ function renderTable(list) {
                         `<a href="${item.certificate_file}" target="_blank" class="btn-view-cert"><i class="fa-solid fa-file-pdf"></i> View Cert</a>`
                         : `<a href="#" onclick="alert('Viewing verified certificate proof for ${item.regd_no}')" class="btn-view-cert"><i class="fa-regular fa-file-lines"></i> View Cert</a>`
                     }
+                </td>
+
+                <!-- 9. VERIFICATION (Rajesh gets Buttons, Students get Status Badge) -->
+                <td style="text-align: center; white-space: nowrap;">
+                    ${isRajesh ? `
+                        <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                            <button onclick="handleFacultyDecision(${item.id}, 'APPROVED')" title="Approve Record" style="background: #15803d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                            <button onclick="handleFacultyDecision(${item.id}, 'REJECTED')" title="Reject Record" style="background: #dc2626; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </div>
+                    ` : `
+                        <span style="display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px; ${
+                            item.status === 'APPROVED' ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' :
+                            (item.status === 'REJECTED' ? 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;' :
+                            'background: #fef3c7; color: #d97706; border: 1px solid #fde68a;')
+                        }">
+                            ${item.status === 'APPROVED' ? '✓ Approved' : 
+                             (item.status === 'REJECTED' ? '✕ Rejected' : 
+                             '⏳ Pending')}
+                        </span>
+                    `}
+                    ${item.faculty_remarks && item.status === 'REJECTED' ? `<div style="font-size: 10px; color: #dc2626; margin-top: 3px; font-weight: 600;">Remarks: ${item.faculty_remarks}</div>` : ''}
                 </td>
             </tr>
         `;
@@ -295,7 +328,7 @@ function applyFilters() {
 }
 
 // -------------------------------------------------------------
-// 6. EXCEL (.XLSX) EXPORT (FIRST DATE -> THEN EVENT TITLE)
+// 6. EXCEL (.XLSX) EXPORT
 // -------------------------------------------------------------
 function exportToExcel() {
     if (!filteredActivities || filteredActivities.length === 0) {
@@ -379,5 +412,40 @@ function setupFormSubmit() {
                 alert("Server error!");
             }
         });
+    }
+}
+
+// -------------------------------------------------------------
+// 8. FACULTY DECISION HANDLER (Rajesh Anna Decision Pipeline)
+// -------------------------------------------------------------
+async function handleFacultyDecision(activityId, decisionStatus) {
+    let remarks = "";
+    if (decisionStatus === "REJECTED") {
+        remarks = prompt("Enter Rejection Remarks / Reason for Student (e.g., Incomplete Certificate, Roll No mismatch):");
+        if (remarks === null) return; // User cancelled
+        if (!remarks.trim()) remarks = "Certificate proof or details invalid. Please re-verify.";
+    }
+
+    try {
+        const res = await fetch(`/api/activities/${activityId}/verify`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                status: decisionStatus,
+                faculty_remarks: remarks || "Verified and approved by Rajesh Sir",
+                verified_by: "Rajesh Sir (Faculty Incharge)"
+            })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            alert(`Record #${activityId} successfully marked as ${decisionStatus}!`);
+            loadActivities();
+        } else {
+            alert(data.detail || "Failed to update status!");
+        }
+    } catch (err) {
+        console.error("Verification error:", err);
+        alert("Server error while submitting verification decision!");
     }
 }

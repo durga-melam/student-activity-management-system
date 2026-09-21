@@ -134,17 +134,20 @@
             </div>
 
             <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" class="input-control" placeholder="Enter password (Optional)" value="password123">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="password" style="margin-bottom: 0;">Password</label>
+                    <a href="#" onclick="handleForgotPassword(event)" style="font-size: 11px; color: #ea580c; font-weight: 700; text-decoration: none;">Forgot Password?</a>
+                </div>
+                <input type="password" id="password" class="input-control" placeholder="Enter password" value="password123">
             </div>
 
             <button type="submit" id="signInBtn" class="btn-signin">Sign in</button>
         </form>
 
         <div class="quick-hint">
-            <strong>🔑 Access:</strong><br>
+            <strong>🔑 Access Details:</strong><br>
             • Student: Enter Roll Number (e.g., <code>22B01A1231</code>)<br>
-            • Faculty: Enter Faculty ID / Name
+            • Incharge Faculty: Enter <code>rajesh</code> (Approval & Rejection Access)
         </div>
     </div>
 
@@ -155,11 +158,23 @@
             const unameInput = document.getElementById("username");
             const uname = (unameInput ? unameInput.value.trim() : "") || "22B01A1231";
             
-            // Save clean user session
-            localStorage.setItem("svecw_user", JSON.stringify({ name: uname.toUpperCase(), regd_no: uname.toUpperCase() }));
+            // 👉 ONLY RAJESH ANNA IS FACULTY
+            const isRajesh = (uname.toLowerCase() === "rajesh");
+            const userRole = isRajesh ? "FACULTY" : "STUDENT";
+            
+            localStorage.setItem("svecw_user", JSON.stringify({ 
+                name: isRajesh ? "Rajesh Sir (Faculty Incharge)" : uname.toUpperCase(), 
+                regd_no: uname.toUpperCase(),
+                role: userRole
+            }));
             
             window.location.href = "/dashboard";
             return false;
+        }
+
+        function handleForgotPassword(e) {
+            if (e) e.preventDefault();
+            alert("🔑 Password Reset Assistance:\n\nPlease contact IT Department Exam Cell / Faculty Incharge:\n📧 Email: itcoordinator@svecw.edu.in\n📞 Phone: 08816-250847\n🏢 Location: IT Department Office, SVECW");
         }
     </script>
 </body>
